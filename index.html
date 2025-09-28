@@ -5,99 +5,222 @@
   <title>ChatFurry</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    /* Загальні стилі */
-    body {
-      margin: 0;
-      padding: 0;
+    /* Скидання стилів */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
       font-family: 'Segoe UI', sans-serif;
-      background-color: #1e1e1e;
+      background-color: #343541;
       color: #fff;
+    }
+
+    body {
+      display: flex;
+      flex-direction: row;
+    }
+
+    /* Сайдбар */
+    .sidebar {
+      width: 260px;
+      background-color: #202123;
+      padding: 1rem;
+      border-right: 1px solid #2a2b2e;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar h2 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+
+    .chat-history {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+    }
+
+    .chat-item {
+      padding: 0.75rem;
+      background-color: #343541;
+      margin-bottom: 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .chat-item:hover {
+      background-color: #3f4044;
+    }
+
+    .new-chat-btn {
+      padding: 0.75rem;
+      background-color: #10a37f;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .new-chat-btn:hover {
+      background-color: #0d8f6c;
+    }
+
+    /* Основна область */
+    .main {
+      flex: 1;
       display: flex;
       flex-direction: column;
       height: 100vh;
     }
 
-    header {
-      background-color: #202123;
-      padding: 1rem;
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: bold;
-      border-bottom: 1px solid #2a2b2e;
-    }
-
-    #chat {
+    .chat-window {
       flex: 1;
       overflow-y: auto;
-      padding: 1rem;
+      padding: 2rem;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.5rem;
     }
 
     .message {
-      max-width: 80%;
-      padding: 0.75rem 1rem;
-      border-radius: 10px;
+      display: flex;
+      gap: 1rem;
       line-height: 1.5;
-      white-space: pre-wrap;
     }
 
-    .user {
-      align-self: flex-end;
-      background-color: #3c3f44;
+    .user-msg .avatar,
+    .bot-msg .avatar {
+      font-size: 1.5rem;
     }
 
-    .bot {
-      align-self: flex-start;
-      background-color: #2a2b2e;
+    .user-msg {
+      align-items: flex-start;
     }
 
-    #input-area {
+    .bot-msg {
+      align-items: flex-start;
+    }
+
+    .bubble {
+      background-color: #444654;
+      padding: 1rem;
+      border-radius: 8px;
+      max-width: 80%;
+    }
+
+    .input-area {
       display: flex;
       padding: 1rem;
+      background-color: #40414f;
       border-top: 1px solid #2a2b2e;
-      background-color: #202123;
     }
 
-    #user-input {
+    .input-area input {
       flex: 1;
       padding: 0.75rem 1rem;
-      border-radius: 10px;
-      border: none;
       background-color: #343541;
+      border: none;
+      border-radius: 6px;
       color: white;
       font-size: 1rem;
     }
 
-    #send-btn {
-      background-color: #10a37f;
-      border: none;
-      color: white;
-      padding: 0 1rem;
+    .input-area button {
       margin-left: 1rem;
-      border-radius: 10px;
-      cursor: pointer;
+      padding: 0.75rem 1.5rem;
+      background-color: #10a37f;
+      color: white;
+      border: none;
+      border-radius: 6px;
       font-weight: bold;
+      cursor: pointer;
     }
 
-    #send-btn:hover {
+    .input-area button:hover {
       background-color: #0d8f6c;
     }
 
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background-color: #555;
-      border-radius: 4px;
+    @media screen and (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
 
-<header>🤖 ChatFurry</header>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>ChatFurry 🐾</h2>
+    <button class="new-chat-btn" onclick="newChat()">+ Новий чат</button>
+    <div class="chat-history" id="chat-history">
+      <!-- історія чатів -->
+    </div>
+  </div>
 
-<div id="chat">
-  <!-- Повідомлення чату з’являтимуться тут
+  <!-- Main chat -->
+  <div class="main">
+    <div class="chat-window" id="chat-window">
+      <!-- Повідомлення з’являться тут -->
+    </div>
+
+    <div class="input-area">
+      <input type="text" id="user-input" placeholder="Напиши повідомлення..." />
+      <button onclick="sendMessage()">Надіслати</button>
+    </div>
+  </div>
+
+  <script>
+    const chatWindow = document.getElementById('chat-window');
+    const userInput = document.getElementById('user-input');
+
+    function addMessage(text, sender = 'user') {
+      const msgWrapper = document.createElement('div');
+      msgWrapper.classList.add('message', sender === 'user' ? 'user-msg' : 'bot-msg');
+
+      const avatar = document.createElement('div');
+      avatar.classList.add('avatar');
+      avatar.textContent = sender === 'user' ? '🧑' : '🤖';
+
+      const bubble = document.createElement('div');
+      bubble.classList.add('bubble');
+      bubble.textContent = text;
+
+      msgWrapper.appendChild(avatar);
+      msgWrapper.appendChild(bubble);
+      chatWindow.appendChild(msgWrapper);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const message = userInput.value.trim();
+      if (!message) return;
+
+      addMessage(message, 'user');
+      userInput.value = '';
+
+      // Симуляція відповіді (поки без реального API)
+      setTimeout(() => {
+        addMessage("🔧 Це тестова відповідь. Щоб інтегрувати GPT-4 — додай OpenAI API.", 'bot');
+      }, 500);
+    }
+
+    function newChat() {
+      chatWindow.innerHTML = '';
+      addMessage("Привіт! Я — ChatFurry, твій штучний помічник. Про що хочеш поговорити?", 'bot');
+    }
+
+    // Автозапуск першого чату
+    newChat();
+
+    // Відправка по Enter
+    userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
+</body>
+</html>
+
