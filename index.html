@@ -1,234 +1,150 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ChatFury</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #0d0d0d;
-      color: white;
+      background-color: #111;
+      font-family: Arial, sans-serif;
+      color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
     }
 
-    .chat-container {
-      width: 100%;
-      max-width: 420px;
-      height: 90vh;
-      background-color: #1a1a1a;
-      border-radius: 16px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    .chatbox {
+      background: #000;
+      border-radius: 12px;
+      width: 350px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
 
-    .chat-header {
+    .header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      background-color: #111;
-      border-bottom: 1px solid #333;
+      margin-bottom: 15px;
     }
 
-    .chat-header h1 {
-      font-size: 1.2rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    .header h2 {
+      margin: 0;
     }
 
-    .chat-header nav a {
-      color: #aaa;
-      margin-left: 1rem;
-      text-decoration: none;
-      font-size: 0.9rem;
-    }
-
-    .chat-messages {
-      flex: 1;
-      padding: 1rem;
+    .messages {
+      background: #111;
+      border-radius: 10px;
+      padding: 10px;
+      height: 300px;
       overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
+      margin-bottom: 10px;
     }
 
     .message {
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 8px;
       max-width: 80%;
-      padding: 0.75rem 1rem;
-      border-radius: 16px;
-      font-size: 0.95rem;
-      line-height: 1.5;
     }
 
-    .message.user {
-      background-color: #2e2e2e;
-      align-self: flex-end;
-    }
-
-    .message.bot {
-      background-color: #333;
+    .bot {
+      background: #222;
       align-self: flex-start;
     }
 
-    .chat-input {
+    .user {
+      background: #444;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+
+    .input-box {
       display: flex;
-      align-items: center;
-      padding: 1rem;
-      border-top: 1px solid #333;
-      background-color: #111;
     }
 
-    .chat-input input {
+    .input-box input {
       flex: 1;
-      padding: 0.75rem 1rem;
+      padding: 10px;
+      border-radius: 20px;
       border: none;
-      border-radius: 24px;
-      background-color: #222;
-      color: white;
-      font-size: 0.95rem;
       outline: none;
+      background: #222;
+      color: #fff;
     }
 
-    .chat-input button {
-      background: none;
+    .input-box button {
+      background: #444;
       border: none;
-      color: white;
-      font-size: 1.5rem;
-      margin-left: 0.5rem;
+      margin-left: 5px;
+      border-radius: 50%;
+      padding: 10px;
       cursor: pointer;
-    }
-
-    .api-key-box {
-      padding: 0.5rem 1rem;
-      background-color: #222;
-      border-top: 1px solid #333;
-      display: flex;
-      align-items: center;
-    }
-
-    .api-key-box input {
-      flex: 1;
-      padding: 0.5rem 1rem;
-      background-color: #111;
-      border: 1px solid #444;
-      border-radius: 8px;
-      color: #ccc;
-      font-size: 0.85rem;
-      outline: none;
-    }
-
-    .api-key-box span {
-      color: #888;
-      font-size: 0.8rem;
-      margin-left: 0.5rem;
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background-color: #444;
-      border-radius: 4px;
+      color: white;
     }
   </style>
 </head>
 <body>
-
-<div class="chat-container">
-  <div class="chat-header">
-    <h1>⚡ ChatFury</h1>
-    <nav>
-      <a href="#">About</a>
-      <a href="#">API</a>
-    </nav>
+  <div class="chatbox">
+    <div class="header">
+      <h2>⚡ ChatFury</h2>
+      <div>
+        <a href="#" style="color:#aaa; margin-right:10px;">About</a>
+        <a href="#" style="color:#aaa;">API</a>
+      </div>
+    </div>
+    <div class="messages" id="messages">
+      <div class="message bot">How can I help you?</div>
+    </div>
+    <div class="input-box">
+      <input type="text" id="userInput" placeholder="Type a message..." />
+      <button onclick="sendMessage()">➤</button>
+    </div>
   </div>
 
-  <div class="chat-messages" id="chat-messages">
-    <div class="message bot">How can I help you?</div>
-  </div>
+  <script>
+    // 🔑 СЮДИ ВСТАВ СВІЙ OPENAI API KEY
+    const OPENAI_API_KEY = "YOUR_API_KEY_HERE";
 
-  <div class="chat-input">
-    <input type="text" id="user-input" placeholder="Type a message..." />
-    <button onclick="handleSend()">&#x27A4;</button>
-  </div>
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const userText = input.value.trim();
+      if (!userText) return;
 
-  <div class="api-key-box">
-    <input type="text" id="api-key" placeholder="Enter your OpenAI API key here..." />
-    <span>🔐</span>
-  </div>
-</div>
+      addMessage(userText, "user");
+      input.value = "";
 
-<script>
-  const chatMessages = document.getElementById('chat-messages');
-  const userInput = document.getElementById('user-input');
-  const apiKeyInput = document.getElementById('api-key');
+      // Запит до OpenAI API
+      try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${OPENAI_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: userText }]
+          })
+        });
 
-  function addMessage(text, sender = 'user') {
-    const div = document.createElement('div');
-    div.className = `message ${sender}`;
-    div.textContent = text;
-    chatMessages.appendChild(div);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-
-  async function handleSend() {
-    const text = userInput.value.trim();
-    if (!text) return;
-
-    addMessage(text, 'user');
-    userInput.value = '';
-
-    const apiKey = apiKeyInput.value.trim();
-    if (!apiKey) {
-      addMessage("❌ Please enter your OpenAI API key.", 'bot');
-      return;
-    }
-
-    // Виклик OpenAI API
-    try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: "gpt-4",
-          messages: [
-            { role: "user", content: text }
-          ]
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.choices && data.choices[0]) {
-        addMessage(data.choices[0].message.content, 'bot');
-      } else {
-        addMessage("⚠️ No response from API.", 'bot');
+        const data = await response.json();
+        const botReply = data.choices[0].message.content;
+        addMessage(botReply, "bot");
+      } catch (error) {
+        addMessage("⚠️ Error: " + error.message, "bot");
       }
-    } catch (err) {
-      console.error(err);
-      addMessage("⚠️ Error fetching response.", 'bot');
     }
-  }
 
-  // Відправка по Enter
-  userInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleSend();
-  });
-</script>
-
+    function addMessage(text, sender) {
+      const messagesDiv = document.getElementById("messages");
+      const msg = document.createElement("div");
+      msg.classList.add("message", sender);
+      msg.textContent = text;
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+  </script>
 </body>
 </html>
-
