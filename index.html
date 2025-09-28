@@ -3,402 +3,216 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ChatFury — локальний віджет</title>
+  <title>ChatFury — Advanced</title>
   <style>
     :root{
-      --bg:#0b0b0b; --panel:#0f0f10; --muted:#9aa0a6; --accent:#fff;
-      --user-bg:#2f2f2f; --bot-bg:#1f1f1f;
+      --bg:#0b0b0b; --panel:#0f0f10; --muted:#9aa0a6; --accent:#ffffff;
+      --user-bg:#273042; --bot-bg:#1a1f24; --accent-2:#6cf;
+      --glass: rgba(255,255,255,0.03);
     }
-    html,body{height:100%;margin:0;background:var(--bg);font-family:Inter, Roboto, Arial, sans-serif;color:var(--accent)}
-    .app {
-      display:flex; align-items:center; justify-content:center; height:100%;
-      padding:24px;
+    [data-theme="light"]{
+      --bg:#f4f6f8; --panel:#ffffff; --muted:#546070; --accent:#0b1220; --user-bg:#e7f0ff; --bot-bg:#eef3f7; --glass: rgba(10,20,30,0.03);
     }
-    .chatbox{
-      width:380px; border-radius:14px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      box-shadow: 0 10px 30px rgba(0,0,0,0.6); overflow:hidden; border:1px solid rgba(255,255,255,0.03);
-    }
-    .header{
-      display:flex; align-items:center; justify-content:space-between; padding:18px 16px;
-      border-bottom:1px solid rgba(255,255,255,0.02);
-    }
-    .brand{display:flex; gap:10px; align-items:center}
-    .logo{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#222,#111);display:flex;align-items:center;justify-content:center;font-weight:700}
-    .brand h1{font-size:16px;margin:0}
-    .nav a{color:var(--muted); text-decoration:none; margin-left:12px; cursor:pointer; font-size:14px}
-    .content{padding:14px; display:flex; flex-direction:column; gap:12px; min-height:380px}
-    .messages{background:transparent; display:flex; flex-direction:column; gap:10px; max-height:300px; overflow:auto; padding-right:6px}
-    .msg{padding:12px 14px; border-radius:12px; max-width:78%; line-height:1.35}
-    .bot{background:var(--bot-bg); align-self:flex-start}
-    .user{background:var(--user-bg); align-self:flex-end}
-    .controls{display:flex; gap:8px; align-items:center}
-    .input-row{display:flex; gap:8px; align-items:center; padding:8px 12px; border-top:1px solid rgba(255,255,255,0.02)}
-    .input-row input{flex:1; padding:12px 14px; border-radius:24px; background:#131313; border:1px solid rgba(255,255,255,0.02); color:var(--accent); outline:none}
-    .send-btn{padding:10px 12px;border-radius:10px; background:#262626;border:none;color:white; cursor:pointer}
-    .small{font-size:13px;color:var(--muted)}
-    .meta{display:flex;gap:8px;align-items:center}
-    .select, .btn {background:#111;border:1px solid rgba(255,255,255,0.03);color:var(--muted);padding:6px 8px;border-radius:8px}
+    html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; color:var(--accent)}
+
+    .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    .widget{width:420px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);box-shadow:0 12px 40px rgba(2,6,23,0.6);border:1px solid var(--glass);overflow:hidden}
+
+    header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--glass)}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#14181b,#0f1112);display:flex;align-items:center;justify-content:center;font-weight:700}
+    .brand h1{margin:0;font-size:18px}
+    .brand p{margin:0;font-size:12px;color:var(--muted)}
+
+    .actions{display:flex;gap:8px;align-items:center}
+    .icon-btn{background:transparent;border:1px solid var(--glass);padding:8px;border-radius:9px;cursor:pointer;color:var(--muted)}
+    .icon-btn:hover{opacity:0.95}
+
+    .panel{padding:12px 16px;display:flex;flex-direction:column;gap:10px;background:transparent}
+    .controls{display:flex;gap:8px;align-items:center;justify-content:space-between}
+    .controls .left{display:flex;gap:8px;align-items:center}
+
+    .select, .btn, .toggle{background:transparent;border:1px solid var(--glass);color:var(--muted);padding:6px 8px;border-radius:8px}
     .btn{cursor:pointer}
-    .footer-row{display:flex; justify-content:space-between; align-items:center; padding:10px 14px; font-size:13px; color:var(--muted)}
-    .typing{font-style:italic; color:var(--muted)}
-    /* modal */
-    .modal-back{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center}
-    .modal{background:#0b0b0b;border-radius:12px;padding:18px;width:360px;border:1px solid rgba(255,255,255,0.03)}
+
+    .messages{height:340px;overflow:auto;padding-right:8px;display:flex;flex-direction:column;gap:12px}
+    .bubble{max-width:78%;padding:12px 14px;border-radius:12px;line-height:1.4;position:relative}
+    .bubble.bot{background:var(--bot-bg);align-self:flex-start}
+    .bubble.user{background:var(--user-bg);align-self:flex-end}
+    .bubble .meta{display:flex;gap:8px;font-size:12px;color:var(--muted);margin-top:6px}
+
+    .msg-actions{position:absolute;top:6px;right:6px;display:flex;gap:6px}
+    .msg-actions button{background:transparent;border:none;color:var(--muted);cursor:pointer;padding:6px;border-radius:8px}
+
+    .composer{display:flex;gap:8px;padding:12px;border-top:1px solid var(--glass);align-items:center;flex-wrap:wrap}
+    textarea{flex:1;min-height:44px;padding:10px 12px;border-radius:12px;border:1px solid var(--glass);background:transparent;color:var(--accent);resize:none;font-size:14px}
+    .send{padding:10px 12px;border-radius:10px;border:1px solid var(--glass);cursor:pointer}
+
+    .footer{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:13px;color:var(--muted);border-top:1px solid var(--glass)}
+
+    .modal-back{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:60}
+    .modal{width:420px;background:var(--panel);padding:16px;border-radius:12px;border:1px solid var(--glass)}
     .modal h3{margin:0 0 8px 0}
-    .modal p{color:var(--muted);font-size:14px}
-    .modal .close{margin-top:12px;display:flex;justify-content:flex-end}
-    .linklike{color:var(--muted);cursor:pointer;text-decoration:underline}
+    .row{display:flex;gap:8px;align-items:center}
+    .small{font-size:13px;color:var(--muted)}
+
+    @media (max-width:480px){.widget{width:100%;border-radius:10px}.messages{height:300px}}
+
   </style>
 </head>
-<body>
-  <div class="app">
-    <div class="chatbox" role="application" aria-label="ChatFury widget">
-      <div class="header">
+<body data-theme="dark">
+  <div class="wrap">
+    <div class="widget" role="region" aria-label="ChatFury">
+      <header>
         <div class="brand">
           <div class="logo">⚡</div>
           <div>
             <h1>ChatFury</h1>
-            <div class="small" id="langLabel">Мова: auto</div>
+            <p class="small" id="langLabel">Мова: auto</p>
           </div>
         </div>
-        <div class="nav">
-          <a id="aboutBtn">About</a>
-          <a id="apiBtn">API</a>
+        <div class="actions">
+          <button class="icon-btn" id="themeToggle" title="Перемкнути тему">🌓</button>
+          <button class="icon-btn" id="settingsBtn" title="Налаштування">⚙️</button>
         </div>
-      </div>
+      </header>
 
-      <div class="content">
+      <div class="panel">
         <div class="controls">
-          <div class="meta">
+          <div class="left">
             <select id="modelSelect" class="select" title="Model">
-              <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
               <option value="gpt-4">gpt-4</option>
+              <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo</option>
             </select>
-            <button id="clearBtn" class="btn">Clear</button>
-            <button id="saveBtn" class="btn">Export</button>
+            <button id="exportBtn" class="btn">Export</button>
+            <button id="importBtn" class="btn">Import</button>
           </div>
+          <div class="right small">Исторія: <span id="count">0</span></div>
         </div>
 
-        <div class="messages" id="messages" aria-live="polite">
-          <!-- messages go here -->
-        </div>
+        <div class="messages" id="messages" aria-live="polite"></div>
 
-        <div class="input-row">
-          <input id="userInput" type="text" placeholder="Type a message..." autocomplete="off" />
-          <button class="send-btn" id="sendBtn">➤</button>
+        <div class="composer">
+          <textarea id="input" placeholder="Введи повідомлення..."></textarea>
+          <button id="sendBtn" class="send">Send</button>
+          <button id="stopBtn" class="send" title="Stop current request">Stop</button>
+          <input id="imageInput" type="file" accept="image/*" style="display:none" />
+          <button id="imageBtn" class="send" title="Attach image">📷</button>
+          <button id="voiceBtn" class="send" title="Voice input">🎤</button>
         </div>
       </div>
 
-      <div class="footer-row">
-        <div class="small">Локальна історія: <span id="count">0</span> повідомлень</div>
-        <div class="small typing" id="status">&nbsp;</div>
+      <div class="footer">
+        <div class="small">Ключ OpenAI вставляй у код або в налаштування (нижче). У продакшні — використовуй сервер-проксі.</div>
+        <div class="small" id="status">&nbsp;</div>
       </div>
     </div>
   </div>
 
-  <!-- About Modal -->
-  <div class="modal-back" id="modalBack">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
-      <h3 id="aboutTitle">About ChatFury</h3>
-      <p>
-        Локальний UI-віжет який підключається до OpenAI. Автоматично намагається адаптуватися під мову користувача
-        і штовхає відповідь у тій мові. Історія зберігається в localStorage.
-      </p>
-      <div class="close"><button id="closeModal" class="btn">Close</button></div>
+  <div class="modal-back" id="modal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3>Налаштування ChatFury</h3>
+      <div class="small" style="margin-bottom:8px">Налаштуй модель, мову, температуру, встав API key.</div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="row">
+          <label class="small" style="width:100px">Model</label>
+          <select id="modelSelectModal" class="select">
+            <option value="gpt-4">gpt-4</option>
+            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label class="small" style="width:100px">Language</label>
+          <select id="langSelect" class="select">
+            <option value="auto">Auto (detect)</option>
+            <option value="uk">Українська</option>
+            <option value="ru">Російська</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label class="small" style="width:100px">Temperature</label>
+          <input id="temp" type="range" min="0" max="1" step="0.05" value="0.7" style="flex:1" />
+        </div>
+
+        <div>
+          <label class="small">OpenAI API Key</label>
+          <textarea id="apiKeyInput" rows="2" style="width:100%;border:1px solid var(--glass);padding:8px;border-radius:8px;background:transparent;color:var(--accent)"></textarea>
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+          <button class="btn" id="closeSettings">Close</button>
+          <button class="btn" id="saveSettings">Save</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- API Modal -->
-  <div class="modal-back" id="apiModalBack">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="apiTitle">
-      <h3 id="apiTitle">API / Налаштування</h3>
-      <p class="small">
-        <strong>Де вставити ключ OpenAI:</strong><br>
-        У файлі нижче знайдеш константу <code>OPENAI_API_KEY</code>. Заміни <code>YOUR_API_KEY_HERE</code> на свій ключ.
-        <br><br>
-        <strong>ВАЖЛИВО:</strong> Для безпеки на продакшні рекомендується не вставляти ключ у фронтенд — роби проксі-запит через свій бекенд.
-      </p>
-
-      <p class="small">А також:</p>
-      <ul class="small" style="color:var(--muted); padding-left:18px">
-        <li>Можеш вибрати модель зверху</li>
-        <li>Натисни Export, щоб завантажити історію чату (JSON)</li>
-      </ul>
-      <div style="margin-top:12px" class="close"><button id="closeApi" class="btn">Close</button></div>
-    </div>
-  </div>
+  <input id="importFile" type="file" accept="application/json" style="display:none" />
 
   <script>
-    /***********************
-     * 🔑 СЮДИ ВСТАВ СВІЙ OPENAI API KEY
-     * (тільки якщо тестуєш локально; у продакшні НЕ вставляй ключ у фронтенд)
-     ***********************/
     const OPENAI_API_KEY = "YOUR_API_KEY_HERE";
-
-    /***********************
-     * Налаштування / state
-     ***********************/
     const messagesEl = document.getElementById('messages');
-    const userInput = document.getElementById('userInput');
+    const inputEl = document.getElementById('input');
     const sendBtn = document.getElementById('sendBtn');
-    const modelSelect = document.getElementById('modelSelect');
-    const langLabel = document.getElementById('langLabel');
-    const statusEl = document.getElementById('status');
-    const countEl = document.getElementById('count');
+    const stopBtn = document.getElementById('stopBtn');
+    const imageBtn = document.getElementById('imageBtn');
+    const imageInput = document.getElementById('imageInput');
+    const voiceBtn = document.getElementById('voiceBtn');
 
-    let conversation = loadConversation(); // масив об'єктів {role, content}
-    renderConversation();
-    updateCount();
+    let recognition;
+    if ('webkitSpeechRecognition' in window) {
+      recognition = new webkitSpeechRecognition();
+      recognition.lang = 'uk-UA';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.onresult = (e)=>{
+        inputEl.value += (inputEl.value?' ':'') + e.results[0][0].transcript;
+      };
+    }
 
-    // Автовизначення мови (проста): використовує browser locale + перевірку на кирилицю у першому повідомленні
-    function detectLanguageFromText(text) {
-      if (!text) return navigator.language || 'en';
-      // Якщо є кириличні символи — припускаємо українська/російська
-      if (/[А-Яа-яЁёЇїІіЄєҐґ]/.test(text)) {
-        // якщо є специфічна 'ї' або 'є' або 'ґ' скоріше за все українська
-        if (/[їЄєҐґЇіІ]/.test(text)) return 'uk';
-        return 'ru';
+    voiceBtn.addEventListener('click', ()=>{
+      if (!recognition) { alert('SpeechRecognition не підтримується'); return; }
+      recognition.start();
+    });
+
+    imageBtn.addEventListener('click', ()=> imageInput.click());
+    imageInput.addEventListener('change', ()=>{
+      const file = imageInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        appendMessage('user', '[image attached]');
+        // Тут можна відправити base64/URL файлу на бекенд для аналізу
+      };
+      reader.readAsDataURL(file);
+    });
+
+    sendBtn.addEventListener('click', onSend);
+    inputEl.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        onSend();
       }
-      // латиниця - беремо браузерну локаль
-      const nav = (navigator.language || 'en').split('-')[0];
-      return nav || 'en';
-    }
+    });
 
-    function getUserLanguage() {
-      // Якщо в історії є user повідомлення — аналізуємо перше
-      const firstUser = conversation.find(m=>m.role==='user');
-      const guessed = detectLanguageFromText(firstUser ? firstUser.content : '');
-      return guessed;
-    }
-
-    function setLangLabel() {
-      const lng = getUserLanguage();
-      langLabel.textContent = 'Мова: ' + (lng === 'uk' ? 'Українська' : lng === 'ru' ? 'Російська' : lng);
-    }
-
-    setLangLabel();
-
-    /***********************
-     * UI helpers
-     ***********************/
-    function addMessageToDOM(text, role) {
-      const d = document.createElement('div');
-      d.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
-      d.textContent = text;
-      messagesEl.appendChild(d);
+    function appendMessage(role, content){
+      const el = document.createElement('div');
+      el.className = 'bubble ' + (role==='user'?'user':'bot');
+      el.textContent = content;
+      messagesEl.appendChild(el);
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    function renderConversation() {
-      messagesEl.innerHTML = '';
-      if (conversation.length === 0) {
-        addMessageToDOM("How can I help you?", 'bot');
-        conversation.push({role:'system', content: defaultSystemPrompt()});
-        saveConversation();
-        updateCount();
-        return;
-      }
-      conversation.forEach(m => {
-        // system messages are hidden
-        if (m.role === 'system') return;
-        addMessageToDOM(m.content, m.role);
-      });
-    }
-
-    function updateCount() {
-      const count = conversation.filter(m => m.role !== 'system').length;
-      countEl.textContent = count;
-    }
-
-    function appendAndSave(role, content) {
-      conversation.push({role, content});
-      saveConversation();
-      updateCount();
-    }
-
-    function clearConversation() {
-      conversation = [];
-      localStorage.removeItem('chatfury_history_v1');
-      renderConversation();
-      updateCount();
-    }
-
-    function saveConversation() {
-      try {
-        localStorage.setItem('chatfury_history_v1', JSON.stringify(conversation));
-      } catch (e) {
-        console.warn('Cannot save conversation', e);
-      }
-    }
-
-    function loadConversation() {
-      try {
-        const raw = localStorage.getItem('chatfury_history_v1');
-        if (!raw) return [];
-        return JSON.parse(raw);
-      } catch (e) {
-        return [];
-      }
-    }
-
-    /***********************
-     * System prompt + language adaptation
-     ***********************/
-    function defaultSystemPrompt() {
-      // Системний prompt який говорить моделі відповідати на мові користувача
-      const uiLang = getUserLanguage();
-      let instruct = "You are a helpful assistant.";
-      instruct += " Always respond in the user's language.";
-      if (uiLang === 'uk') instruct += " Respond in Ukrainian.";
-      else if (uiLang === 'ru') instruct += " Respond in Russian.";
-      else instruct += ` Respond in ${uiLang}.`;
-      instruct += " Keep answers clear and concise.";
-      return instruct;
-    }
-
-    // Якщо немає system message — додамо його
-    (function ensureSystem() {
-      if (!conversation.some(m => m.role === 'system')) {
-        conversation.unshift({role:'system', content: defaultSystemPrompt()});
-        saveConversation();
-      }
-    })();
-
-    /***********************
-     * Sending to OpenAI
-     ***********************/
-    async function sendMessage() {
-      const text = userInput.value.trim();
+    function onSend(){
+      const text = inputEl.value.trim();
       if (!text) return;
-      // Додати локально
-      appendAndSave('user', text);
-      addMessageToDOM(text, 'user');
-      userInput.value = '';
-      setLangLabel();
-
-      // update status
-      status('Sending…');
-
-      // Формуємо масив messages для API (включно з system)
-      const messagesForAPI = conversation.slice(); // shallow copy
-      // Перед викликом — оновимо system щоб гарантувати актуальну мову
-      const sysIndex = messagesForAPI.findIndex(m=>m.role==='system');
-      if (sysIndex >= 0) messagesForAPI[sysIndex].content = defaultSystemPrompt();
-      else messagesForAPI.unshift({role:'system', content: defaultSystemPrompt()});
-
-      // Перевірка ключа
-      if (!OPENAI_API_KEY || OPENAI_API_KEY === "YOUR_API_KEY_HERE") {
-        // показати дружнє повідомлення з інструкцією
-        addMessageToDOM("⚠️ API key not set. Open API modal (top-right) and paste your key into the code.", 'bot');
-        status('');
-        return;
-      }
-
-      try {
-        // Використовуємо v1/chat/completions
-        const model = modelSelect.value || 'gpt-3.5-turbo';
-        const body = {
-          model,
-          messages: messagesForAPI.filter(m => m.role !== 'system' ? true : true), // all roles (we want system too)
-          temperature: 0.7,
-          max_tokens: 1000
-        };
-
-        // Надсилаємо запит
-        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + OPENAI_API_KEY
-          },
-          body: JSON.stringify(body)
-        });
-
-        if (!resp.ok) {
-          const textErr = await resp.text();
-          throw new Error('HTTP ' + resp.status + ' — ' + textErr);
-        }
-
-        const data = await resp.json();
-        // Безпечна перевірка
-        const content = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || "[no response]";
-        appendAndSave('assistant', content);
-        addMessageToDOM(content, 'bot');
-        status('');
-      } catch (err) {
-        console.error(err);
-        addMessageToDOM("⚠️ Error: " + err.message, 'bot');
-        status('');
-      }
+      appendMessage('user', text);
+      inputEl.value='';
     }
-
-    // status helper
-    function status(t) {
-      statusEl.textContent = t || '';
-    }
-
-    /***********************
-     * Events
-     ***********************/
-    sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
-
-    document.getElementById('clearBtn').addEventListener('click', () => {
-      if (confirm('Clear conversation?')) clearConversation();
-    });
-
-    document.getElementById('saveBtn').addEventListener('click', () => {
-      const dataStr = JSON.stringify(conversation, null, 2);
-      const blob = new Blob([dataStr], {type: 'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'chatfury_export.json';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    });
-
-    // Modals
-    const aboutBtn = document.getElementById('aboutBtn');
-    const apiBtn = document.getElementById('apiBtn');
-    const modalBack = document.getElementById('modalBack');
-    const apiModalBack = document.getElementById('apiModalBack');
-
-    aboutBtn.addEventListener('click', () => { modalBack.style.display = 'flex'; });
-    document.getElementById('closeModal').addEventListener('click', ()=> modalBack.style.display='none');
-    modalBack.addEventListener('click', (e)=> { if (e.target === modalBack) modalBack.style.display='none'; });
-
-    apiBtn.addEventListener('click', ()=> { apiModalBack.style.display='flex'; });
-    document.getElementById('closeApi').addEventListener('click', ()=> apiModalBack.style.display='none');
-    apiModalBack.addEventListener('click', (e)=> { if (e.target === apiModalBack) apiModalBack.style.display='none'; });
-
-    // keyboard focus
-    userInput.focus();
-
-    // update language label when typing first char (helps auto-detect)
-    userInput.addEventListener('input', () => {
-      setTimeout(setLangLabel, 0);
-    });
-
-    // Initial render if conversation loaded
-    (function initRender() {
-      // if conversation contains assistant messages, show them; otherwise add greeting
-      if (conversation.length === 0) {
-        conversation.push({ role: 'system', content: defaultSystemPrompt() });
-        saveConversation();
-        renderConversation();
-      } else {
-        renderConversation();
-      }
-      updateCount();
-    })();
   </script>
 </body>
 </html>
