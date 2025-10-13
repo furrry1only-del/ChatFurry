@@ -1,0 +1,41 @@
+{
+  "post_counter": 2,
+  "pending_posts": {
+    "1": {
+      "post_id": 1,
+      "user_id": 7883597300,
+      "username": "bortovt",
+      "full_name": ".",
+      "file_id": "BAACAgIAAxkBAAIC-mjqY-BikaQy2tCQdVtwqh_BXU2QAAIjgQACXzZZS46ByO2NZB5bNgQ",
+      "media_type": "video",
+      "caption": "Тест!",
+      "date": "2025-10-11T14:49:20.018633",
+      "group_msg_id": 178,
+      "status": "pending",
+      "channel_msg_id": null
+    },
+    "2": {
+      "post_id": 2,
+      "user_id": 7883597300,
+      "username": "bortovt",
+      "full_name": ".",
+      "file_id": "AgACAgIAAxkBAAICTGjqE_55X7Xa9sAL3fPD--hULK_xAAKrDzIbhnZIS1rsFDl5O2JoAQADAgADeQADNgQ",
+      "media_type": "photo",
+      "caption": "Тест",
+      "date": "2025-10-11T14:50:13.434872",
+      "group_msg_id": 181,
+      "status": "rejected",
+      "channel_msg_id": null
+    }
+  },
+  "published_posts": {},
+  "paid_requests": {},
+  "pending_payments": [],
+  "mod_logs": {
+    "8063971330": [
+      "2025-10-11 14:49:39 — edit post #1",
+      "2025-10-11 14:50:27 — reject post #2"
+    ]
+  },
+  "moderators": []
+}

@@ -1,0 +1,9 @@
+services:
+  - type: worker
+    name: telegram-bot
+    env: python
+    buildCommand: ""
+    startCommand: python bot.py
+    envVars:
+      - key: 7733643731:AAFlN-E4RDBu4YTiaJpBmUXsbSLgKq1E6A0
+        sync: false
